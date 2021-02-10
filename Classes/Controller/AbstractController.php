@@ -10,11 +10,13 @@ namespace HDNET\Calendarize\Controller;
 use HDNET\Calendarize\Domain\Repository\IndexRepository;
 use HDNET\Calendarize\Property\TypeConverter\AbstractBookingRequest;
 use HDNET\Calendarize\Service\PluginConfigurationService;
+use Psr\Http\Message\ResponseInterface;
 use TYPO3\CMS\Core\Messaging\FlashMessage;
 use TYPO3\CMS\Core\Utility\GeneralUtility;
 use TYPO3\CMS\Core\Utility\HttpUtility;
 use TYPO3\CMS\Extbase\Configuration\ConfigurationManagerInterface;
 use TYPO3\CMS\Extbase\Mvc\Controller\ActionController;
+use TYPO3\CMS\Extbase\Mvc\RequestInterface;
 use TYPO3\CMS\Extbase\Security\Cryptography\HashService;
 use TYPO3\CMS\Extbase\SignalSlot\Dispatcher;
 use TYPO3\CMS\Frontend\Controller\TypoScriptFrontendController;
@@ -85,9 +87,9 @@ abstract class AbstractController extends ActionController
      *
      * @api
      */
-    protected function callActionMethod()
+    protected function callActionMethod(RequestInterface $request) : ResponseInterface
     {
-        parent::callActionMethod();
+        $actionResult = parent::callActionMethod($request);
         if (isset($this->feedFormats[$this->request->getFormat()])) {
             $this->sendHeaderAndFilename($this->feedFormats[$this->request->getFormat()], $this->request->getFormat());
             if ($this->request->hasArgument('hmac')) {
@@ -96,10 +98,11 @@ abstract class AbstractController extends ActionController
                     $this->sendHeaderAndFilename($this->feedFormats[$this->request->getFormat()], $this->request->getFormat());
                 }
 
-                return;
+                return $actionResult;
             }
             $this->sendHeaderAndFilename($this->feedFormats[$this->request->getFormat()], $this->request->getFormat());
         }
+        return $actionResult;
     }
 
     /**
